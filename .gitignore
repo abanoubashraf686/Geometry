@@ -8,6 +8,8 @@
 *.pdb
 *.g.resources
 *.exe.config
+*.csproj
+*.Designer.cs
 CGAlgorithms/obj/*
 CGAlgorithms/bin/*
 CGUI/obj/*
@@ -18,7 +20,6 @@ CGAlgorithmsUnitTest/obj/*
 CGAlgorithmsUnitTest/bin/*
 CGUtilitiesUnitTest/bin/*
 CGUtilitiesUnitTest/obj/*
-
 
 
 /CGPackage.v11.suo
