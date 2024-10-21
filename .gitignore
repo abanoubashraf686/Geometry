@@ -9,7 +9,6 @@
 *.g.resources
 *.exe.config
 *.Designer.cs
-*.config
 CGAlgorithms/obj/*
 CGAlgorithms/bin/*
 CGUI/obj/*
