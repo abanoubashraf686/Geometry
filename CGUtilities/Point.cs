@@ -78,5 +78,9 @@ namespace CGUtilities
         {
             return new Point(X, Y);
         }
+        public override string ToString()
+        {
+            return this.X+" "+this.Y;
+        }
     }
 }
