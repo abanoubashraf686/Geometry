@@ -10,6 +10,7 @@
 *.exe.config
 *.csproj
 *.Designer.cs
+*.config
 CGAlgorithms/obj/*
 CGAlgorithms/bin/*
 CGUI/obj/*
