@@ -69,7 +69,10 @@ namespace CGUtilities
             Point ans = this / mag;
             return ans;
         }
-       
+        public static Point operator -(Point p1, Point p2)
+        {
+            return new Point(p1.X - p2.X, p1.Y - p2.Y);
+        }
         /// <summary>
         /// Make a new instance of Point
         /// </summary>
@@ -77,10 +80,6 @@ namespace CGUtilities
         public object Clone()
         {
             return new Point(X, Y);
-        }
-        public override string ToString()
-        {
-            return this.X+" "+this.Y;
         }
     }
 }
