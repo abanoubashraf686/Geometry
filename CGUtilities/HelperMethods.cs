@@ -48,6 +48,11 @@ namespace CGUtilities
         {
             return a.X * b.Y - a.Y * b.X;
         }
+        public static double DotProduct(Point a, Point b)
+        {
+            return a.X * b.X + a.Y * b.Y;
+        }
+
         public static bool PointOnRay(Point p, Point a, Point b)
         {
             if (a.Equals(b)) return true;
