@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,7 +28,7 @@ namespace CGUtilities
             if (GetVector(ca).Equals(Point.Identity)) return (PointOnSegment(p, ab.Start, ab.End)) ? Enums.PointInPolygon.OnEdge : Enums.PointInPolygon.Outside;
 
             if (CheckTurn(ab, p) == Enums.TurnType.Colinear)
-                return PointOnSegment(p, a, b)? Enums.PointInPolygon.OnEdge : Enums.PointInPolygon.Outside;
+                return PointOnSegment(p, a, b) ? Enums.PointInPolygon.OnEdge : Enums.PointInPolygon.Outside;
             if (CheckTurn(bc, p) == Enums.TurnType.Colinear && PointOnSegment(p, b, c))
                 return PointOnSegment(p, b, c) ? Enums.PointInPolygon.OnEdge : Enums.PointInPolygon.Outside;
             if (CheckTurn(ca, p) == Enums.TurnType.Colinear && PointOnSegment(p, c, a))
@@ -85,6 +86,20 @@ namespace CGUtilities
         public static Point GetVector(Line l)
         {
             return l.Start.Vector(l.End);
+        }
+        public static double GetAngle(Point p, Point refrencePoint)
+        {
+            if(p.X==refrencePoint.X && p.Y==refrencePoint.Y)
+                return 0;
+            double angle = Math.Atan2(p.Y - refrencePoint.Y, p.X - refrencePoint.X) * (180 / Math.PI);
+            if (angle < 0)
+                angle += 360;
+            return 180-angle;
+        }
+        public static double GetDistance(Point p, Point refrencePoint)
+        {
+            double diffx = (p.X - refrencePoint.X), diffy = (p.Y - refrencePoint.Y);
+            return diffx * diffx + diffy * diffy;
         }
     }
 }

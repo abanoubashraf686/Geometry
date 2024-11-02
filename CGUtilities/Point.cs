@@ -39,6 +39,16 @@ namespace CGUtilities
             get;
             set;
         }
+        public double angle
+        {
+            get;
+            set;
+        }
+        public double distance
+        {
+            get;
+            set;
+        }
 
         public static Point Identity { get { return new Point(0, 0); } }
         public override bool Equals(object obj)
@@ -54,6 +64,10 @@ namespace CGUtilities
         public static Point operator /(Point p, double d)
         {
             return new Point(p.X / d, p.Y / d);
+        }
+        public static Point operator *(Point p, double d)
+        {
+            return new Point(p.X * d, p.Y * d);
         }
         public Point Vector(Point to)
         {
@@ -81,5 +95,24 @@ namespace CGUtilities
         {
             return new Point(X, Y);
         }
+        public override String ToString()
+        {
+            return X + " " + Y;
+        }
+        // Compare based on X, then Y if X values are equal
+        public int CompareTo(Point other)
+        {
+            if (other == null) return 1;
+
+            // First compare by X coordinate
+            int xComparison = X.CompareTo(other.X);
+
+            if (xComparison != 0)
+                return xComparison;
+
+            // If X is equal, compare by Y coordinate
+            return Y.CompareTo(other.Y);
+        }
+
     }
 }

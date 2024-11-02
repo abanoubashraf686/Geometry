@@ -27834,7 +27834,7 @@ namespace CGAlgorithmsUnitTest
             inputPoints.Add(new Point(13,  12));
             inputPoints.Add(new Point(4 , 13));
             inputPoints.Add(new Point(15,  14));
-            
+
             desiredPoints.Add(new Point(9 ,0));
             desiredPoints.Add(new Point(16, 2));
             desiredPoints.Add(new Point(18, 9));
@@ -31021,7 +31021,10 @@ namespace CGAlgorithmsUnitTest
                 return false;
 
             if (_desiredPoints.Count != _outputPoints.Count)
+            {
+                Console.WriteLine("_desiredPoints.Count != _outputPoints.Count");
                 return false;
+            }
 
             for (int i = 0; i < _desiredPoints.Count; i++)
             {
@@ -31037,7 +31040,10 @@ namespace CGAlgorithmsUnitTest
                 }
 
                 if (!isFound)
+                {
+                    Console.WriteLine("!isFound");
                     return false;
+                }
             }
 
             return true;

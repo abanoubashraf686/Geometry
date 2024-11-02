@@ -24,6 +24,7 @@ namespace CGAlgorithms.Algorithms.ConvexHull
                 if (points[i].X < v.X || points[i].X == v.X && points[i].Y < v.Y) v = points[i];
             }
             outPoints.Add(v);
+            
             while (true)
             {
                 v = outPoints.Last();

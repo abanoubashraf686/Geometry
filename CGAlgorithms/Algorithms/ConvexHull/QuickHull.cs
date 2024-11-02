@@ -1,6 +1,7 @@
 ﻿using CGUtilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,79 +16,74 @@ namespace CGAlgorithms.Algorithms.ConvexHull
             if (points.Count == 0)
                 return;
             Point Line = p2 - p1;
-            double mag = Line.Magnitude();
-            Point p3 = points.First();
-            double currDist = -1;
+            //double mag = Line.Magnitude();
+            Point pl =null, pr=null;
+            double currDist = 0;
             foreach (Point pi in points)
             {
                 double dist = Math.Abs(HelperMethods.CrossProduct(Line, pi - p1));
                 if (dist > currDist)
                 {
-                    p3 = pi;
+                    pl = pr = pi;
                     currDist = dist;
                 }
+                else if (dist == currDist)
+                {
+                    if (HelperMethods.CheckTurn(pl - p1, pi - pl) == TurnType.Left)
+                        pl = pi;
+                    else if (HelperMethods.CheckTurn(pr - p2, pi - pr) == TurnType.Right)
+                        pr = pi;
+                }
+            }
+            if (currDist == 0)
+            {
+                foreach (Point pi in points)
+                    outPoints.Add(pi);
+                return;
             }
             List<Point> L = new List<Point>(), R = new List<Point>();
-            Point p1p3 = p3 - p1, p2p3 = p3 - p2;
+            Point p1pl = pl - p1, p2pr = pr - p2;
             foreach (Point pi in points)
             {
+
                 // Left p1p3
-                if (HelperMethods.CheckTurn(p1p3, pi - p3) == TurnType.Left)
+                if (HelperMethods.CheckTurn(p1pl, pi - pl) == TurnType.Left)
                 {
                     L.Add(pi);
                 }
                 // right p2p3
-                else if (HelperMethods.CheckTurn(p2p3, pi - p3) == TurnType.Right)
+                else if (HelperMethods.CheckTurn(p2pr, pi - pr) == TurnType.Right)
                 {
                     R.Add(pi);
                 }
             }
-            outPoints.Add(p3);
-            solve(p1, p3, L, ref outPoints);
-            solve(p3, p2, R, ref outPoints);
+            outPoints.Add(pl);
+            if(pr!=pl)
+                outPoints.Add(pr);
+            solve(p1, pl, L, ref outPoints);
+            solve(pr, p2, R, ref outPoints);
         }
         public override void Run(List<Point> points, List<Line> lines, List<Polygon> polygons, ref List<Point> outPoints, ref List<Line> outLines, ref List<Polygon> outPolygons)
         {
-            // min and max of x and y
-            // four lines minx-maxy,
-            // remove any point inside polygon 
-            // left minx-maxy
-            // left minx-miny
-            // right maxx-miny
-            // right maxx-maxy
-            Point p1 = points[0], p2 = p1, p3 = p1, p4 = p1;
-            //     p3
-
-            //p1------p2
-
-            //    p4
+            Point p1 = points[0], p2 = p1 , p3 = p1;
             foreach (Point point in points)
             {
-                Console.WriteLine(point);
-                if (point.X < p1.X)
+                //Console.WriteLine(point);
+                if (point.X < p1.X || (point.X==p1.X && point.Y<p1.Y))
                     p1 = point;
-                if (point.X > p2.X)
+                if (point.X > p2.X || (point.X == p2.X && point.Y < p2.Y))
                     p2 = point;
-                if (point.Y > p3.Y)
+                if (p3.Y < point.Y)
                     p3 = point;
-                if (point.Y < p4.Y)
-                    p4 = point;
             }
             outPoints = new List<Point>();
+            outPoints.Add(p1);
             if (p1.X == p2.X)
             {
-                if (p3.Y == p4.Y)
-                {
+                if(p3.Y!=p1.Y)
                     outPoints.Add(p3);
-                }
-                else
-                {
-                    outPoints.Add(p3);
-                    outPoints.Add(p4);
-                }
                 return;
             }
-            outPoints.Add(p1);
             outPoints.Add(p2);
             List<Point> L1 = new List<Point>(), L2 = new List<Point>();
             foreach (Point p in points)
