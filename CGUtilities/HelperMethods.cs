@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -105,6 +106,12 @@ namespace CGUtilities
         {
             double diffx = (p.X - refrencePoint.X), diffy = (p.Y - refrencePoint.Y);
             return diffx * diffx + diffy * diffy;
+        }
+        public static double GetY(Line l, double x)
+        {
+            Debug.Assert(l.Start.X != l.End.X);
+            double slope = (l.End.Y - l.Start.Y) / (l.End.X - l.Start.X);
+            return l.Start.Y + slope * (x - l.Start.X);
         }
     }
 }
