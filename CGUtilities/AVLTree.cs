@@ -6,67 +6,89 @@ using System.Threading.Tasks;
 
 namespace CGUtilities
 {
-    public class Node
+    public class Node<T>
     {
-        public Node(Node left, Node right, int height, Point p)
+        public Node(Node<T> left, Node<T> right, int height, T value)
         {
             this.left = left;
             this.right = right;
             this.height = height;
-            this.p = p;
+            this.value = value;
         }
-        public Node left, right;
+
+        public Node<T> left, right;
         public int height, balance;
-        public Point p;
+        public T value;
     }
-    public class AVLTree
+
+    public class AVLTree<T>
     {
-        Node root, begin, end;
+        private Node<T> root, begin, end;
         public int size = 0;
-        private int getHeight(Node node)
+        private readonly IComparer<T> comparer;
+        public AVLTree()
+        {
+            this.comparer = Comparer<T>.Default;
+        }
+        public AVLTree(IComparer<T> comparer)
+        {
+            this.comparer = comparer;
+        }
+
+        private int getHeight(Node<T> node)
         {
             if (node == null) return 0;
             return node.height;
         }
-        private int getBalance(Node node)
+
+        private int getBalance(Node<T> node)
         {
-            if (node == null) return 0;
-            return getHeight(node.left) - getHeight(node.right);
+            return node == null ? 0 : getHeight(node.left) - getHeight(node.right);
         }
-        private Node rotateRight(Node N)
+
+        private Node<T> rotateRight(Node<T> N)
         {
             if (N == null || N.left == null) return N;
+
             //     N
             //   p    a
             // b   c
-            Node p = N.left;
+            Node<T> p = N.left;
             N.left = p.right;
             p.right = N;
+
             N.height = Math.Max(getHeight(N.left), getHeight(N.right)) + 1;
             p.height = Math.Max(getHeight(p.left), getHeight(p.right)) + 1;
+
             return p;
         }
-        private Node rotateLeft(Node N)
+
+        private Node<T> rotateLeft(Node<T> N)
         {
             if (N == null || N.right == null) return N;
+
             //       N
             //    a     p      
             //        b   c   
-            Node p = N.right;
+            Node<T> p = N.right;
             N.right = p.left;
             p.left = N;
+
             N.height = Math.Max(getHeight(N.left), getHeight(N.right)) + 1;
             p.height = Math.Max(getHeight(p.left), getHeight(p.right)) + 1;
+
             return p;
         }
-        private Node balance(Node root)
+
+        private Node<T> balance(Node<T> root)
         {
-            if (root == null)
-                return root;
+            if (root == null) return root;
+
             // update height 
             root.height = Math.Max(getHeight(root.left), getHeight(root.right)) + 1;
             // update balance 
             int balance = getBalance(root);
+
             // R 
             if (balance < -1)
             {
@@ -87,90 +109,58 @@ namespace CGUtilities
             }
             return root;
         }
-        public int compare(Point p1, Point p2)
+
+        private int compare(T p1, T p2)
         {
-            int cmp = p1.X.CompareTo(p2.X);
-            if (cmp == 0)
-                cmp = p1.Y.CompareTo(p2.Y);
-            return cmp;
+            return comparer.Compare(p1, p2);
         }
-        private Node insert(Point p, Node root)
+
+        private Node<T> insert(T value, Node<T> root)
         {
             if (root == null)
             {
-                root = new Node(null, null, 0, p);
-                if (begin == null || compare(p, begin.p) == -1)
+                root = new Node<T>(null, null, 0, value);
+                if (begin == null || compare(value, begin.value) < 0)
                     begin = root;
-                if (end == null || compare(p, end.p) == 1)
+                if (end == null || compare(value, end.value) > 0)
                     end = root;
                 size++;
                 return root;
             }
-            int cmp = compare(p, root.p);
-            // root = p 
-            if (cmp == 0)
-                return root;
-            // p < root  
-            if (cmp == -1)
-                root.left = insert(p, root.left);
+
+            int cmp = compare(value, root.value);
+            // root = value
+            if (cmp == 0) return root;
+
+            // value < root  
+            if (cmp < 0)
+                root.left = insert(value, root.left);
             else
-                root.right = insert(p, root.right);
+                root.right = insert(value, root.right);
+
             return balance(root);
         }
-        private Node GetSuccessor(Node curr)
+
+        private Node<T> GetSuccessor(Node<T> curr)
         {
             curr = curr.right;
             while (curr != null && curr.left != null)
-            {
                 curr = curr.left;
-            }
             return curr;
         }
-        private Node balance(Node root, Point p)
+
+        private Node<T> erase(T value, Node<T> root)
         {
-            // Update height
-            root.height = Math.Max(getHeight(root.left), getHeight(root.right)) + 1;
+            if (root == null) return root;
 
-            // Calculate balance factor
-            int balance = getBalance(root);
-
-            // Left Left Case
-            if (balance > 1 && compare(p, root.left.p) < 0)
-                return rotateRight(root);
-
-            // Right Right Case
-            if (balance < -1 && compare(p, root.right.p) > 0)
-                return rotateLeft(root);
-
-            // Left Right Case
-            if (balance > 1 && compare(p, root.left.p) > 0)
-            {
-                root.left = rotateLeft(root.left);
-                return rotateRight(root);
-            }
-
-            // Right Left Case
-            if (balance < -1 && compare(p, root.right.p) < 0)
-            {
-                root.right = rotateRight(root.right);
-                return rotateLeft(root);
-            }
-
-            // Return unchanged root if no rotations were performed
-            return root;
-        }
-        private Node erase(Point p, Node root)
-        {
-            if (root == null)
-                return root;
-            int cmp = compare(p, root.p);
+            int cmp = compare(value, root.value);
             if (cmp == 0)
             {
                 if (root.left != null && root.right != null)
                 {
-                    Node successor = GetSuccessor(root);
-                    root.p = successor.p;
-                    root.right = erase(root.p, root.right);
+                    Node<T> successor = GetSuccessor(root);
+                    root.value = successor.value;
+                    root.right = erase(root.value, root.right);
                 }
                 else
                 {
@@ -181,28 +171,36 @@ namespace CGUtilities
                     size--;
                 }
             }
-            else if (cmp == -1)
-                root.left = erase(p, root.left);
+            else if (cmp < 0)
+                root.left = erase(value, root.left);
             else
-                root.right = erase(p, root.right);
-            return balance(root); ;
+                root.right = erase(value, root.right);
+
+            return balance(root);
         }
-        public void insert(Point p)
+
+        public void insert(T value)
         {
-            this.root = insert(p, this.root);
+            root = insert(value, root);
         }
-        public void erase(Point p)
+
+        public void erase(T value)
         {
-            this.root = erase(p, this.root);
+            root = erase(value, root);
         }
-        public Node next(Node root, Point p, bool equal = false)
+
+        public Node<T> next(T value)
         {
-            Node it = this.root, ans = null;
-            int cmp = 0;
+            return next(root, value);
+        }
+
+        private Node<T> next(Node<T> root, T value, bool equal = false)
+        {
+            Node<T> it = this.root, ans = null;
             while (it != null)
             {
-                cmp = compare(p, it.p);
-                if (cmp == -1)
+                int cmp = compare(value, it.value);
+                if (cmp < 0)
                 {
                     ans = it;
                     it = it.left;
@@ -218,17 +216,27 @@ namespace CGUtilities
             }
             return ans;
         }
-        public Node prev(Node root, Point p)
+
+        public Node<T> lower_bound(T value)
         {
-            Node it = this.root, ans = null;
-            int cmp = 0;
+            return next(root, value, true);
+        }
+
+        public Node<T> prev(T value)
+        {
+            return prev(root, value);
+        }
+
+        private Node<T> prev(Node<T> root, T value)
+        {
+            Node<T> it = this.root, ans = null;
             while (it != null)
             {
-                cmp = compare(p, it.p);
-                // p <= curr 
-                if (cmp != 1)
+                int cmp = compare(value, it.value);
+                // value <= curr 
+                if (cmp <= 0)
                     it = it.left;
-                // p > curr ;
+                // value > curr
                 else
                 {
                     ans = it;
@@ -237,86 +245,67 @@ namespace CGUtilities
             }
             return ans;
         }
-        public Node next(Node node)
-        {
-            return next(this.root, node.p);
-        }
-        public Node prev(Node node)
-        {
-            if (node == null)
-                return end;
-            if (node == begin)
-                return null;
-            return prev(this.root, node.p);
-        }
-        public Node next(Point p)
-        {
-            return next(this.root, p);
-        }
-        public Node lower_bound(Point p)
-        {
-            return next(this.root, p, true);
-        }
-        // debug add
-        //public void Add(Point p)
-        //{
-        //    Console.WriteLine($"Tro to Add Point: ({p.X}, {p.Y}) angle:({p.angle}) , distance: {p.distance}");
+    
+    // debug add
+    //public void Add(Point p)
+    //{
+    //    Console.WriteLine($"Tro to Add Point: ({p.X}, {p.Y}) angle:({p.angle}) , distance: {p.distance}");
 
-        //    if (size < 2)
-        //    {
-        //        Console.WriteLine($"Size < 2, inserting without checks.");
-        //        insert(p);
-        //        return;
-        //    }
+    //    if (size < 2)
+    //    {
+    //        Console.WriteLine($"Size < 2, inserting without checks.");
+    //        insert(p);
+    //        return;
+    //    }
 
-        //    Node nxt1 = lower_bound(p);
-        //    Console.WriteLine($"Next Node after lower_bound: {nxt1?.p}");
+    //    Node nxt1 = lower_bound(p);
+    //    Console.WriteLine($"Next Node after lower_bound: {nxt1?.p}");
 
-        //    // exist
-        //    if (nxt1 != null && nxt1.p.X == p.X && nxt1.p.Y == p.Y)
-        //    {
-        //        Console.WriteLine($"Point ({p.X}, {p.Y}) already exists.");
-        //        return;
-        //    }
+    //    // exist
+    //    if (nxt1 != null && nxt1.p.X == p.X && nxt1.p.Y == p.Y)
+    //    {
+    //        Console.WriteLine($"Point ({p.X}, {p.Y}) already exists.");
+    //        return;
+    //    }
 
-        //    Node prev1 = prev(nxt1);
-        //    Debug.Assert(prev1 != null, "prev1 should not be null here.");
-        //    Console.WriteLine($"Previous Node: {prev1.p}");
+    //    Node prev1 = prev(nxt1);
+    //    Debug.Assert(prev1 != null, "prev1 should not be null here.");
+    //    Console.WriteLine($"Previous Node: {prev1.p}");
 
-        //    if (nxt1 != null && CheckTurn(nxt1.p - prev1.p, p - nxt1.p) != Enums.TurnType.Left)
-        //    {
-        //        Console.WriteLine($"Turn check failed between ({nxt1.p.X}, {nxt1.p.Y}) and ({prev1.p.X}, {prev1.p.Y})");
-        //        return;
-        //    }
-        //    // Most right 
-        //    Node prev2;
-        //    while (prev1 != null && (prev2 = prev(prev1)) != null && CheckTurn(prev1.p - p, prev2.p - prev1.p) != Enums.TurnType.Left)
-        //    {
-        //        Console.WriteLine($"Removing point due to Most right turn check: ({prev1.p.X}, {prev1.p.Y})");
-        //        erase(prev1.p);
-        //        prev1 = prev2;
-        //    }
-        //    // Most Left  
-        //    Node nxt2;
-        //    while (nxt1 != null && (nxt2 = next(nxt1)) != null && CheckTurn(nxt1.p - p, nxt2.p - nxt1.p) != Enums.TurnType.Right)
-        //    {
-        //        Console.WriteLine($"Removing point due to Most Left turn check: ({p.X}, {p.Y})->({nxt1.p.X}, {nxt1.p.Y}) -> ({nxt2.p.X}, {nxt2.p.Y})");
-        //        erase(nxt1.p);
-        //        nxt1 = nxt2;
-        //    }
+    //    if (nxt1 != null && CheckTurn(nxt1.p - prev1.p, p - nxt1.p) != Enums.TurnType.Left)
+    //    {
+    //        Console.WriteLine($"Turn check failed between ({nxt1.p.X}, {nxt1.p.Y}) and ({prev1.p.X}, {prev1.p.Y})");
+    //        return;
+    //    }
+    //    // Most right 
+    //    Node prev2;
+    //    while (prev1 != null && (prev2 = prev(prev1)) != null && CheckTurn(prev1.p - p, prev2.p - prev1.p) != Enums.TurnType.Left)
+    //    {
+    //        Console.WriteLine($"Removing point due to Most right turn check: ({prev1.p.X}, {prev1.p.Y})");
+    //        erase(prev1.p);
+    //        prev1 = prev2;
+    //    }
+    //    // Most Left  
+    //    Node nxt2;
+    //    while (nxt1 != null && (nxt2 = next(nxt1)) != null && CheckTurn(nxt1.p - p, nxt2.p - nxt1.p) != Enums.TurnType.Right)
+    //    {
+    //        Console.WriteLine($"Removing point due to Most Left turn check: ({p.X}, {p.Y})->({nxt1.p.X}, {nxt1.p.Y}) -> ({nxt2.p.X}, {nxt2.p.Y})");
+    //        erase(nxt1.p);
+    //        nxt1 = nxt2;
+    //    }
 
-        //    Console.WriteLine($"Inserting Point: ({p.X}, {p.Y})");
-        //    insert(p);
-        //}
-        public void traverse(ref List<Point> outputs, Node root)
+    //    Console.WriteLine($"Inserting Point: ({p.X}, {p.Y})");
+    //    insert(p);
+    //}
+        public void traverse(ref List<T> outputs, Node<T> root)
         {
             if (root == null)
                 return;
             traverse(ref outputs, root.left);
-            outputs.Add(root.p);
+            outputs.Add(root.value);
             traverse(ref outputs, root.right);
         }
-        public void traverse(ref List<Point> outputs)
+        public void traverse(ref List<T> outputs)
         {
             traverse(ref outputs, root);
         }

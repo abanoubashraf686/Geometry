@@ -55,10 +55,10 @@ namespace CGAlgorithms.Algorithms.SegmentIntersection
             }
         }
 
-        public static double currentX;
-        public const double ESP = 1e-4;
+        public const double ESP = 1e-6;
 
         public class YListComparer : IComparer<Line> {
+            public double currentX;
             public int Compare(Line l1, Line l2)
             {
                 double y1 = HelperMethods.GetY(l1, currentX);
@@ -66,58 +66,37 @@ namespace CGAlgorithms.Algorithms.SegmentIntersection
                 return y1.CompareTo(y2);
             }
         }
-        public class PointComparer : IComparer<Point>
-        {
-            public int Compare(Point p1, Point p2)
-            {
-                if (p1.X != p2.X) return p1.X.CompareTo(p2.X);
-                return p1.Y.CompareTo(p2.Y);
-            }
-        }
+        public static YListComparer Ycomparer = new YListComparer();
         public void checkIntersection(Line l1, Line l2, ref SortedSet<Intersection> I, ref SortedSet<Point> res)
         {
+            if (l1.Equals(l2)) return;
             Intersection i = new Intersection(l1, l2);
             if (i.hasIntersection)
             {
-                if (i.intersectionPoint.X > currentX)
+                if (i.intersectionPoint.X > Ycomparer.currentX)
                     I.Add(i);
                 res.Add(i.intersectionPoint);
             }
         }
-        public void handleIntersection(Line l, bool add, ref SortedSet<Intersection> I, ref SortedSet<Line> L, ref SortedSet<Point> res) {
-            if (!add) L.Remove(l);
-            
-            bool ok1 = false, ok2 = false;
-            Line l1 = new Line(new Point(0, 0), new Point(0, 0));
-            Line l2 = new Line(new Point(0, 0), new Point(0, 0));
+        public void handleIntersection(Line l, bool add, ref SortedSet<Intersection> I, ref AVLTree<Line> L, ref SortedSet<Point> res) {
+            if (add) L.insert(l);
+            Node<Line> l1 = L.prev(l);
+            Node<Line> l2 = L.next(l);
+            if (!add) L.erase(l);
 
-            foreach (var line in L)
-            {
-                if (HelperMethods.GetY(line, currentX) < HelperMethods.GetY(l, currentX))
-                {
-                    l1 = line;
-                    ok1 = true;
-                } else if (!ok2)
-                {
-                    l2 = line;
-                    ok2 = true;
-                }
-            }
-            if (ok1)
-                checkIntersection(l1, l, ref I, ref res);
-            if (ok2)
-                checkIntersection(l2, l, ref I, ref res);
-            if (ok1 && ok2)
-                checkIntersection(l1, l2, ref I, ref res);
-
-            if (add) L.Add(l);
+            if (l1 != null)
+                checkIntersection(l1.value, l, ref I, ref res);
+            if (l2 != null)
+                checkIntersection(l2.value, l, ref I, ref res);
+            if (l1 != null && l2 != null)
+                checkIntersection(l1.value, l2.value, ref I, ref res);
         }
         public override void Run(List<CGUtilities.Point> points, List<CGUtilities.Line> lines, List<CGUtilities.Polygon> polygons, ref List<CGUtilities.Point> outPoints, ref List<CGUtilities.Line> outLines, ref List<CGUtilities.Polygon> outPolygons)
         {
             List<KeyValuePair<Line, bool>> E = new List<KeyValuePair<Line, bool>>();
-            SortedSet<Line> L = new SortedSet<Line>(new YListComparer());
+            AVLTree<Line> L = new AVLTree<Line>(Ycomparer);
             SortedSet<Intersection> I = new SortedSet<Intersection>();
-            SortedSet<Point> res = new SortedSet<Point>(new PointComparer());
+            SortedSet<Point> res = new SortedSet<Point>();
 
             foreach (var l in lines)
             {
@@ -144,19 +123,43 @@ namespace CGAlgorithms.Algorithms.SegmentIntersection
             {
                 Point p;
                 p = e.Value == false ? e.Key.Start : e.Key.End;
-                while (I.Count > 0 && I.Min.intersectionPoint.X < p.X)
-                {
-                    
-                    currentX = I.Min.intersectionPoint.X - ESP;
-                    L.Remove(I.Min.l1);
-                    L.Remove(I.Min.l2);
+                Intersection curIntersection;
+                while (I.Count > 0 && (curIntersection = I.Min).intersectionPoint.X < p.X)
+                {/*
+                    Ycomparer.currentX = I.Min.intersectionPoint.X - ESP;
+                    L.erase(I.Min.l1);
+                    L.erase(I.Min.l2);
 
-                    currentX = I.Min.intersectionPoint.X + ESP; 
+                    Ycomparer.currentX = I.Min.intersectionPoint.X + ESP;
                     handleIntersection(I.Min.l1, true, ref I, ref L, ref res);
                     handleIntersection(I.Min.l2, true, ref I, ref L, ref res);
-                    I.Remove(I.Min);
+                    */
+                    Node<Line> l1 = L.lower_bound(curIntersection.l1);
+                    Node<Line> l2 = L.lower_bound(curIntersection.l2);
+
+                    Node<Line> prvl1 = L.prev(l2.value);
+                    Node<Line> nxtl1 = L.next(l2.value);
+
+                    Node<Line> prvl2 = L.prev(l1.value);
+                    Node<Line> nxtl2 = L.next(l1.value);
+
+                    Line tmp = l1.value;
+                    l1.value = l2.value;
+                    l2.value = tmp;
+
+                    Ycomparer.currentX = curIntersection.intersectionPoint.X + ESP;
+
+                    Debug.Assert(L.lower_bound(l1.value).value.Equals(l1.value));
+                    Debug.Assert(L.lower_bound(l2.value).value.Equals(l2.value));
+
+                    if (prvl1 != null) checkIntersection(l1.value, prvl1.value, ref I, ref res);
+                    if (nxtl1 != null) checkIntersection(l1.value, nxtl1.value, ref I, ref res);
+                    if (prvl2 != null) checkIntersection(l2.value, prvl2.value, ref I, ref res);
+                    if (nxtl2 != null) checkIntersection(l2.value, nxtl2.value, ref I, ref res);
+
+                    I.Remove(curIntersection);
                 }
-                currentX = p.X;
+                Ycomparer.currentX = p.X;
                 handleIntersection(e.Key, !e.Value, ref I, ref L, ref res);
             }
             outPoints = new List<Point>(res);
