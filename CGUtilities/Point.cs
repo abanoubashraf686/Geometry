@@ -9,7 +9,7 @@ namespace CGUtilities
     /// <summary>
     /// The primary Point structure to be used in the CG project.
     /// </summary>
-    public class Point : ICloneable
+    public class Point : IComparable<Point>
     {
         /// <summary>
         /// Creates a point structure with the given coordinates.
@@ -69,6 +69,14 @@ namespace CGUtilities
         {
             return new Point(p.X * d, p.Y * d);
         }
+        public static Point operator -(Point p1, Point p2)
+        {
+            return new Point(p1.X - p2.X, p1.Y - p2.Y);
+        }
+        public static Point operator +(Point p1, Point p2)
+        {
+            return new Point(p1.X + p2.X, p1.Y + p2.Y);
+        }
         public Point Vector(Point to)
         {
             return new Point(to.X - this.X, to.Y - this.Y);
@@ -82,10 +90,6 @@ namespace CGUtilities
             double mag = this.Magnitude();
             Point ans = this / mag;
             return ans;
-        }
-        public static Point operator -(Point p1, Point p2)
-        {
-            return new Point(p1.X - p2.X, p1.Y - p2.Y);
         }
         /// <summary>
         /// Make a new instance of Point
@@ -102,8 +106,6 @@ namespace CGUtilities
         // Compare based on X, then Y if X values are equal
         public int CompareTo(Point other)
         {
-            if (other == null) return 1;
-
             // First compare by X coordinate
             int xComparison = X.CompareTo(other.X);
 

@@ -93,14 +93,23 @@ namespace CGUtilities
         {
             return l.Start.Vector(l.End);
         }
-        public static double GetAngle(Point p, Point refrencePoint)
+        public static double getAngle(Point p, Point refrencePoint)
         {
             if(p.X==refrencePoint.X && p.Y==refrencePoint.Y)
                 return 0;
             double angle = Math.Atan2(p.Y - refrencePoint.Y, p.X - refrencePoint.X) * (180 / Math.PI);
             if (angle < 0)
                 angle += 360;
-            return 180-angle;
+            return angle;
+        }
+        public static double getAngle(Point p)
+        {
+            if (p.X == 0 && p.Y == 0)
+                return 0;
+            double angle = Math.Atan2(p.Y, p.X) * (180 / Math.PI);
+            if (angle < 0)
+                angle += 360;
+            return angle;
         }
         public static double GetDistance(Point p, Point refrencePoint)
         {
