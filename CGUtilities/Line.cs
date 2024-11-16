@@ -21,7 +21,7 @@ namespace CGUtilities
             this.Start = start;
             this.End = end;
         }
-
+        public int ID = -5; 
         /// <summary>
         /// Creates a line structure that has the specified start/end.
         /// </summary>
@@ -58,6 +58,11 @@ namespace CGUtilities
         public object Clone()
         {
             return new Line((Point)Start.Clone(), (Point)End.Clone());
+        }
+        public override string ToString()
+        {
+            return ID.ToString();
+//            return "Start: " + Start.ToString() + " End: " + End.ToString();
         }
     }
 }

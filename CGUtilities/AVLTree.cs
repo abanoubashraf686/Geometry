@@ -305,9 +305,31 @@ namespace CGUtilities
             outputs.Add(root.value);
             traverse(ref outputs, root.right);
         }
+        public void traverseNodes(ref string outputs, Node<T> root)
+        {
+            if (root == null)
+                return;
+            traverseNodes(ref outputs, root.left);
+
+            outputs += "Node: " + root.value.ToString();
+            if (root.left != null)
+                outputs += " Left: " + root.left.value.ToString();
+            if (root.right != null)
+                outputs += " Right: " + root.right.value.ToString();
+            outputs += "\n";
+
+            traverseNodes(ref outputs, root.right);
+        }
         public void traverse(ref List<T> outputs)
         {
             traverse(ref outputs, root);
         }
+        public override string ToString()
+        {
+            string s = "";
+            traverseNodes(ref s, this.root);
+            return s;
+        }
+
     }
 }
