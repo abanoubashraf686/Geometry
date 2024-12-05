@@ -46,6 +46,10 @@ namespace CGUtilities
             else if (result > 0) return Enums.TurnType.Left;
             else return Enums.TurnType.Colinear;
         }
+        public static Enums.TurnType CheckTurn(Point p1, Point p2,Point p3)
+        {
+            return CheckTurn(p2 - p1, p3 - p2);
+        }
         public static double CrossProduct(Point a, Point b)
         {
             return a.X * b.Y - a.Y * b.X;
