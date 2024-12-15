@@ -21,40 +21,44 @@ namespace CGAlgorithms.Algorithms.PolygonTriangulation
             List<Point> points = new List<Point>();
             for (int i = 0; i < n; i++)
             {
-                Point oldPoint = Lines[maxYLineIdx].Start;
-                Point newPoint = Lines[i].Start;
-                points.Add(newPoint);
-                if (newPoint.Y > oldPoint.Y || newPoint.Y == oldPoint.Y && newPoint.X < oldPoint.X)
-                {
+                points.Add(Lines[i].Start);
+                if (points[i].Y > points[maxYLineIdx].Y || (points[i].Y == points[maxYLineIdx].Y && points[i].X < points[maxYLineIdx].X))
                     maxYLineIdx = i;
-                }
             }
+            //outPoints = points;
             // start[-1] start[i], end[i] -> check right ? right cycle
-            int dir = -1;
+            int R = -1;
             if (HelperMethods.CheckTurn(points[(maxYLineIdx - 1 + n) % n], points[maxYLineIdx], points[(maxYLineIdx + 1 + n) % n]) == Enums.TurnType.Right)
-                dir = +1;
+                R = +1;
+            int dir = R;
             //Debug.Assert(false, "dir: "+dir.ToString());
             List<Point> st = new List<Point>();
             int curr = maxYLineIdx, op = (curr - dir + n) % n;
-            //outLines.Add(new Line(points[op], points[curr]));
-            while(true)
+            int cnt = 0;
+            while(cnt<1e6)
             {
-                Enums.TurnType turn = (dir == 1 ? Enums.TurnType.Right : Enums.TurnType.Left);
-                while (points[op].Y < points[curr].Y)
+                cnt++;
+                Enums.TurnType turn = (dir == R ? Enums.TurnType.Right : Enums.TurnType.Left);
+                while (points[op].Y < points[curr].Y || (op!=curr && points[op].Y == points[curr].Y))
                 {
                     Point last = points[curr];
-                    while (st.Count >= 2 && (HelperMethods.CheckTurn(st[st.Count - 2], st[st.Count - 1], last)) == turn)
+                    while (st.Count >= 2)
                     {
-                        // Add triangle 
+                        Enums.TurnType t = (HelperMethods.CheckTurn(st[st.Count - 2], st[st.Count - 1], last));
+                        if (t != turn)
+                        {
+                            if(t==Enums.TurnType.Colinear)
+                                st.RemoveAt(st.Count - 1);
+                            break;
+                        }
                         outLines.Add(new Line(last, st[st.Count - 2]));
                         st.RemoveAt(st.Count - 1);
                     }
                     st.Add(last);
                     curr = (curr + dir + n) % n;
                 }
-                if (points[curr].Equals(points[op])) break;
-
-                if (st.Count > 0)
+                if (op==curr) break;
+                if (st.Count > 1)
                 {
                     Point last = st.Last();
                     while (st.Count > 1)
